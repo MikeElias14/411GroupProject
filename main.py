@@ -6,8 +6,8 @@ def main():
 
     # Given, meters
     h = 1
-    l = 5
-    w = 5
+    l = 3
+    w = 3
     unit_price = 895
     watts = 70661
 
@@ -18,19 +18,61 @@ def main():
     max_i = 500
 
     # Variables
-    num_lights = 2
-
     # position, in metres of each light
-    pos_x = [0, l]
-    pos_y = [0, w]
+    num_lights = 0
+    pos_x = []
+    pos_y = []
     pos_z = 4
 
     # This funct is given point_x and point_y in m
     def get_lux(point_x, point_y):
         i = 0
-        for j in range(num_lights):
-            i += watts / ((4 * np.pi) * (pos_z**2 + (point_x - pos_x[j])**2 + (point_y - pos_y[j])**2))
+        for m in range(num_lights):
+            i += watts / ((4 * np.pi) * (pos_z**2 + (point_x - pos_x[m])**2 + (point_y - pos_y[m])**2))
         return i
+
+    def set_starting_points(n):
+        pos_x = []
+        pos_y = []
+        p = (l+w)*2
+
+        seg = p/n
+
+        for i in range(n):
+            dist = seg*i
+
+            if dist <= l:
+                pos_x.append(dist)
+                pos_y.append(0)
+            elif l < dist <= l+w:
+                pos_x.append(l)
+                pos_y.append(dist-l)
+            elif l+w < dist <= (2*l)+w:
+                pos_x.append(dist-(l+w))
+                pos_y.append(w)
+            elif (2*l)+w < dist:
+                pos_x.append(0)
+                pos_y.append(w-(dist-((2*l)-w)))
+
+        return pos_x, pos_y
+
+    def move_lights():
+        mid_x = l*50
+        mid_y = w*50
+        for i in range(num_lights):
+            x = pos_x[i]
+            y = pos_y[i]
+
+            if mid_x > x:
+                pos_x[i] += 0.01
+            elif mid_x < x:
+                pos_x[i] -= 0.01
+
+            if mid_y > y:
+                pos_y[i] += 0.01
+            elif mid_y < y:
+                pos_x[i] -= 0.01
+        return
 
     def get_hours():
         hours = 3 * (0.25 * h)
@@ -55,11 +97,33 @@ def main():
     length = room.shape[0]
     width = room.shape[1]
 
-    for x in range(0, length):
-        for y in range(0, width):
-            room[x, y] += get_lux(x/100, y/100)  # pass meters to get_lux
+    passed = False
+    while not passed:
+        num_lights += 1
+        pos_x, pos_y = set_starting_points(num_lights)
+
+        done = False
+        while not done:
+            for j in range(0, length):
+                for k in range(0, width):
+                    lux = get_lux(j/100, k/100)
+                    room[j, k] += lux  # pass meters to get_lux
+                    if lux < min_i:
+                        move_lights()
+                        passed = False
+                        break
+                else:
+                    continue
+                break
+            else:
+                passed = True
+                done = True
 
     heatmap2d(room)
+
+    print("num_lights: " + str(num_lights))
+    print("pos_x: " + str(pos_x))
+    print("pos_y: " + str(pos_y))
 
 
 if __name__ == "__main__":
