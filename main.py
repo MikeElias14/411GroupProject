@@ -6,29 +6,30 @@ def main():
 
     # Given, meters
     h = 1
-    l = 1
-    w = 1
+    l = 5
+    w = 5
     unit_price = 895
     watts = 70661
 
     # Constraints
     min_z = 2
     max_z = h
-    intensity = 300
+    min_i = 300
+    max_i = 500
 
     # Variables
-    num_lights = 1
+    num_lights = 2
 
     # position, in metres of each light
-    pos_x = [0.25, 0.75]
-    pos_y = [0.25, 0.75]
-    pos_z = [4, 4]
+    pos_x = [0, l]
+    pos_y = [0, w]
+    pos_z = 4
 
     # This funct is given point_x and point_y in m
     def get_lux(point_x, point_y):
         i = 0
-        for j in range(len(pos_x)):
-            i += watts / ((4 * np.pi) * ((pos_z[j])**2 + (point_x - pos_x[j])**2 + (point_y - pos_y[j])**2))
+        for j in range(num_lights):
+            i += watts / ((4 * np.pi) * (pos_z**2 + (point_x - pos_x[j])**2 + (point_y - pos_y[j])**2))
         return i
 
     def get_hours():
@@ -50,13 +51,14 @@ def main():
         plt.show()
 
     # Room is a 2d array of lxw, in cm, at reading level
-    room = np.arange(w*100 * l*100).reshape(h*100, l*100)
+    room = np.zeros(shape=(w*100, l*100))
     length = room.shape[0]
     width = room.shape[1]
 
     for x in range(0, length):
         for y in range(0, width):
-            room[x, y] = get_lux(x/100, y/100)  # pass meters to get_lux
+            room[x, y] += get_lux(x/100, y/100)  # pass meters to get_lux
+
     heatmap2d(room)
 
 
