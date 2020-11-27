@@ -6,8 +6,8 @@ def main():
 
     # Given, meters
     h = 1
-    l = 10
-    w = 7
+    x_in = 12
+    y_in = 14
     unit_price = 895
     watts = 70661
 
@@ -28,7 +28,7 @@ def main():
     path_x = []
     path_y = []
 
-    # This funct is given point_x and point_y in m
+    # This funct is given point_x and point_y in cm
     def get_lux(point_x, point_y):
         i = 0
         for m in range(num_lights):
@@ -41,50 +41,52 @@ def main():
         path_x = []
         path_y = []
 
-        p = (l+w)*2
+        p = (x_in+y_in)*2
 
         seg = p/n
 
         for i in range(n):
             dist = seg*i
 
-            if dist <= l:
+            if dist <= x_in:
                 pos_x.append(dist)
                 pos_y.append(0)
-            elif l < dist <= l+w:
-                pos_x.append(l)
-                pos_y.append(dist-l)
-            elif l+w < dist <= (2*l)+w:
-                pos_x.append(l-(dist-(l+w)))
-                pos_y.append(w)
-            elif (2*l)+w < dist:
+            elif x_in < dist <= x_in+y_in:
+                pos_x.append(x_in)
+                pos_y.append(dist-x_in)
+            elif x_in+y_in < dist <= (2*x_in)+y_in:
+                pos_x.append(x_in-(dist-(x_in+y_in)))
+                pos_y.append(y_in)
+            elif (2*x_in)+y_in < dist:
                 pos_x.append(0)
-                pos_y.append(w-(dist-((2*l)-w)))
+                pos_y.append(y_in-(dist-((2*x_in)+y_in)))
+
+        print("Starting points x: " + str(pos_x))
+        print("Starting points y: " + str(pos_y))
 
         return pos_x, pos_y
 
     def move_lights():
-        mid_x = l*50
-        mid_y = w*50
+        mid_x = x_in/2
+        mid_y = y_in/2
         for i in range(num_lights):
-            x = pos_x[i]
-            y = pos_y[i]
-
-            # path_x[i].append(x)
-            # path_y[i].append(y)
-
-            if mid_x > x:
-                pos_x[i] += 0.01
-            elif mid_x < x:
-                pos_x[i] -= 0.01
-
-            if mid_y > y:
-                pos_y[i] += 0.01
-            elif mid_y < y:
-                pos_y[i] -= 0.01
-
-            if y-1 <= mid_y <= y+1 and x-1 <= mid_x <= x+1:
+            x0 = pos_x[i]
+            y0 = pos_y[i]
+            if x0 - 0.1 <= mid_x <= x0 + 0.1 or y0 - 0.1 <= mid_y <= y0 + 0.1:
+                print("add a light!")
                 return False
+
+            if x0 < mid_x:
+                x = x0 + 0.01
+                y = ((mid_y - y0) / (mid_x - x0)) * (x - x0) + y0
+            else:  # x0 > mid_x:
+                x = x0 - 0.01
+                y = ((mid_y - y0) / (mid_x - x0)) * (x - x0) + y0
+            #         print(x, mid_x, y, mid_y)
+
+            pos_x[i] = round(x, 2)
+            pos_y[i] = round(y, 2)
+        #         print(pos_x, pos_y)
         return True
 
     def get_hours():
@@ -103,29 +105,26 @@ def main():
     def heatmap2d(arr: np.ndarray):
         plt.imshow(arr, cmap='viridis')
         plt.colorbar()
-        for i in range(len(orig_x)):
-            orig_x[i] *= 100
-            orig_y[i] *= 100
-        plt.scatter(orig_x, orig_y)
-        for i in range(len(path_x)):
-            plt.scatter(path_x, path_y)
+        for i in range(len(pos_x)):
+            pos_x[i] *= 100
+            pos_y[i] *= 100
+        plt.scatter(pos_y, pos_x)
         plt.show()
 
     # Room is a 2d array of lxw, in cm, at reading level
-    room = np.zeros(shape=(w*100, l*100))
-    length = room.shape[0]
-    width = room.shape[1]
+    room = np.zeros(shape=(x_in*100, y_in*100))
+    x_shape = room.shape[0]
+    y_shape = room.shape[1]
 
     passed = False
     while not passed:
         num_lights += 1
-        orig_x, orig_y = set_starting_points(num_lights)
-        pos_x, pos_y = orig_x, orig_y
+        pos_x, pos_y = set_starting_points(num_lights)
 
         done = False
         while not done:
-            for j in range(0, length):
-                for k in range(0, width):
+            for j in range(0, x_shape):
+                for k in range(0, y_shape):
                     lux = get_lux(j/100, k/100)
                     room[j, k] = lux  # pass meters to get_lux
                     if lux < min_i:
