@@ -6,8 +6,8 @@ def main():
 
     # Given, meters
     h = 1
-    l = 3
-    w = 3
+    l = 8
+    w = 5
     unit_price = 895
     watts = 70661
 
@@ -72,7 +72,10 @@ def main():
                 pos_y[i] += 0.01
             elif mid_y < y:
                 pos_x[i] -= 0.01
-        return
+
+            if y-1 <= mid_y <= y+1 and x-1 <= mid_x <= x+1:
+                return False
+        return True
 
     def get_hours():
         hours = 3 * (0.25 * h)
@@ -107,9 +110,10 @@ def main():
             for j in range(0, length):
                 for k in range(0, width):
                     lux = get_lux(j/100, k/100)
-                    room[j, k] += lux  # pass meters to get_lux
+                    room[j, k] = lux  # pass meters to get_lux
                     if lux < min_i:
-                        move_lights()
+                        if not move_lights():
+                            done = True
                         passed = False
                         break
                 else:
@@ -119,11 +123,10 @@ def main():
                 passed = True
                 done = True
 
-    heatmap2d(room)
-
     print("num_lights: " + str(num_lights))
     print("pos_x: " + str(pos_x))
     print("pos_y: " + str(pos_y))
+    heatmap2d(room)
 
 
 if __name__ == "__main__":
