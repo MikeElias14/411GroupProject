@@ -6,8 +6,8 @@ def main():
 
     # Given, meters
     h = 1
-    l = 8
-    w = 5
+    l = 10
+    w = 7
     unit_price = 895
     watts = 70661
 
@@ -24,6 +24,10 @@ def main():
     pos_y = []
     pos_z = 4
 
+    # plotting
+    path_x = []
+    path_y = []
+
     # This funct is given point_x and point_y in m
     def get_lux(point_x, point_y):
         i = 0
@@ -34,6 +38,9 @@ def main():
     def set_starting_points(n):
         pos_x = []
         pos_y = []
+        path_x = []
+        path_y = []
+
         p = (l+w)*2
 
         seg = p/n
@@ -48,7 +55,7 @@ def main():
                 pos_x.append(l)
                 pos_y.append(dist-l)
             elif l+w < dist <= (2*l)+w:
-                pos_x.append(dist-(l+w))
+                pos_x.append(l-(dist-(l+w)))
                 pos_y.append(w)
             elif (2*l)+w < dist:
                 pos_x.append(0)
@@ -63,6 +70,9 @@ def main():
             x = pos_x[i]
             y = pos_y[i]
 
+            # path_x[i].append(x)
+            # path_y[i].append(y)
+
             if mid_x > x:
                 pos_x[i] += 0.01
             elif mid_x < x:
@@ -71,7 +81,7 @@ def main():
             if mid_y > y:
                 pos_y[i] += 0.01
             elif mid_y < y:
-                pos_x[i] -= 0.01
+                pos_y[i] -= 0.01
 
             if y-1 <= mid_y <= y+1 and x-1 <= mid_x <= x+1:
                 return False
@@ -93,6 +103,12 @@ def main():
     def heatmap2d(arr: np.ndarray):
         plt.imshow(arr, cmap='viridis')
         plt.colorbar()
+        for i in range(len(orig_x)):
+            orig_x[i] *= 100
+            orig_y[i] *= 100
+        plt.scatter(orig_x, orig_y)
+        for i in range(len(path_x)):
+            plt.scatter(path_x, path_y)
         plt.show()
 
     # Room is a 2d array of lxw, in cm, at reading level
@@ -103,7 +119,8 @@ def main():
     passed = False
     while not passed:
         num_lights += 1
-        pos_x, pos_y = set_starting_points(num_lights)
+        orig_x, orig_y = set_starting_points(num_lights)
+        pos_x, pos_y = orig_x, orig_y
 
         done = False
         while not done:
